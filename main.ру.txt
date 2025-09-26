@@ -1,0 +1,36 @@
+from flask import Flask, request
+import requests
+
+app = Flask(__name__)
+
+# --- ЗАМЕНИ НА СВОЙ ТОКЕН И CHAT_ID ---
+TELEGRAM_TOKEN = 'ВАШ_ТОКЕН_ОТ_BOTFATHER'
+CHAT_ID = 'ВАШ_CHAT_ID'
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    data = request.json
+
+    symbol = data.get('symbol', '???')
+    action = data.get('action', '???')
+    message = data.get('message', 'Нет текста')
+
+    final_message = f"📈 <b>Сигнал с TradingView</b>:\n\n" \
+                    f"💹 <b>Инструмент:</b> {symbol}\n" \
+                    f"📍 <b>Действие:</b> {action}\n\n" \
+                    f"📩 <b>Сообщение:</b> {message}"
+
+    send_to_telegram(final_message)
+    return 'OK', 200
+
+def send_to_telegram(text):
+    payload = {
+        'chat_id': CHAT_ID,
+        'text': text,
+        'parse_mode': 'HTML'
+    }
+    requests.post(TELEGRAM_API_URL, data=payload)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
